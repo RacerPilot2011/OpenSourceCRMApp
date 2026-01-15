@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Opportunity Details - CRM</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+  <div class="nav-brand">CRM</div>
+  <div class="nav-links">
+    <a href="/dashboard.html">Dashboard</a>
+    <a href="/accounts.html">Accounts</a>
+    <a href="/contacts.html">Contacts</a>
+    <a href="/leads.html">Leads</a>
+    <a href="/opportunities.html" class="active">Opportunities</a>
+    <a href="/finance.html">Finance</a>
+    <a href="/settings.html">Settings</a>
+    <a href="#" id="logoutBtn">Logout</a>
+  </div>
+</nav>
+  
+  <div class="container">
+    <div class="page-header">
+      <h1 id="oppName">Loading...</h1>
+      <div class="button-group">
+        <button class="btn btn-primary" id="editBtn">Edit</button>
+        <button class="btn btn-danger" id="deleteBtn">Delete</button>
+      </div>
+    </div>
+
+    <div class="detail-grid">
+      <div class="detail-section">
+        <h2>Information</h2>
+        <div class="detail-row">
+          <span class="label">Account:</span>
+          <span id="account">-</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Contact:</span>
+          <span id="contact">-</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Amount:</span>
+          <span id="amount">-</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Stage:</span>
+          <span id="stage">-</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Probability:</span>
+          <span id="probability">-</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Close Date:</span>
+          <span id="closeDate">-</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Description:</span>
+          <span id="description">-</span>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <h2>Activities</h2>
+        <button class="btn btn-secondary btn-sm" id="newActivityBtn">New Activity</button>
+        <div id="activities">Loading...</div>
+      </div>
+    </div>
+
+    <div id="activityModal" class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>New Activity</h2>
+        <form id="activityForm">
+          <div class="form-group">
+            <label for="type">Type *</label>
+            <select id="type" required>
+              <option value="note">Note</option>
+              <option value="task">Task</option>
+              <option value="email">Email</option>
+              <option value="call">Call</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="subject">Subject *</label>
+            <input type="text" id="subject" required>
+          </div>
+          <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" rows="4"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="dueDate">Due Date</label>
+            <input type="datetime-local" id="dueDate">
+          </div>
+          <div id="formError" class="error"></div>
+          <div class="button-group">
+            <button type="submit" class="btn btn-primary">Save</button>
+            <button type="button" class="btn btn-secondary" id="cancelActivityBtn">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/js/config.js"></script>
+  <script type="module" src="/js/auth.js"></script>
+  <script type="module" src="/js/api.js"></script>
+  <script type="module">
+    import { requireAuth, handleLogout } from '/js/auth.js';
+    import { api } from '/js/api.js';
+    
+    await requireAuth();
+    
+    document.getElementById('logoutBtn').addEventListener('click', (e) => {
+      e.preventDefault();
+      handleLogout();
+    });
+
+    const params = new URLSearchParams(window.location.search);
+    const oppId = params.get('id');
+
+    if (!oppId) {
+      window.location.href = '/opportunities.html';
+    }
+
+    let opportunity = null;
+
+    async function loadOpportunity() {
+      try {
+        opportunity = await api.get(`/opportunities/${oppId}`);
+        
+        document.getElementById('oppName').textContent = opportunity.name;
+        document.getElementById('account').innerHTML = opportunity.accounts 
+          ? `<a href="/account-detail.html?id=${opportunity.account_id}">${opportunity.accounts.name}</a>` 
+          : '-';
+        document.getElementById('contact').innerHTML = opportunity.contacts 
+          ? `<a href="/contact-detail.html?id=${opportunity.contact_id}">${opportunity.contacts.first_name} ${opportunity.contacts.last_name}</a>` 
+          : '-';
+        document.getElementById('amount').textContent = opportunity.amount 
+          ? '$' + parseFloat(opportunity.amount).toLocaleString() 
+          : '-';
+        document.getElementById('stage').innerHTML = `<span class="badge">${opportunity.stage}</span>`;
+        document.getElementById('probability').textContent = opportunity.probability 
+          ? opportunity.probability + '%' 
+          : '-';
+        document.getElementById('closeDate').textContent = opportunity.close_date || '-';
+        document.getElementById('description').textContent = opportunity.description || '-';
+
+        const activities = await api.get(`/activities?regarding_type=opportunity&regarding_id=${oppId}`);
+
+        const activitiesHtml = activities.length > 0
+          ? `<ul class="activity-list">
+              ${activities.map(a => `
+                <li>
+                  <span class="badge">${a.type}</span> ${a.subject}
+                  <small>${new Date(a.created_at).toLocaleString()}</small>
+                </li>
+              `).join('')}
+            </ul>`
+          : '<p>No activities</p>';
+        document.getElementById('activities').innerHTML = activitiesHtml;
+
+      } catch (error) {
+        console.error('Error loading opportunity:', error);
+        alert('Failed to load opportunity');
+      }
+    }
+
+    document.getElementById('editBtn').addEventListener('click', () => {
+      window.location.href = `/opportunities.html?edit=${oppId}`;
+    });
+
+    document.getElementById('deleteBtn').addEventListener('click', async () => {
+      if (!confirm('Are you sure you want to delete this opportunity?')) return;
+      
+      try {
+        await api.delete(`/opportunities/${oppId}`);
+        window.location.href = '/opportunities.html';
+      } catch (error) {
+        alert('Failed to delete opportunity');
+      }
+    });
+
+    const activityModal = document.getElementById('activityModal');
+    const activityForm = document.getElementById('activityForm');
+
+    document.getElementById('newActivityBtn').addEventListener('click', () => {
+      activityModal.style.display = 'block';
+    });
+
+    document.querySelector('#activityModal .close').addEventListener('click', () => {
+      activityModal.style.display = 'none';
+    });
+
+    document.getElementById('cancelActivityBtn').addEventListener('click', () => {
+      activityModal.style.display = 'none';
+    });
+
+    activityForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const data = {
+        type: document.getElementById('type').value,
+        subject: document.getElementById('subject').value,
+        description: document.getElementById('description').value,
+        due_date: document.getElementById('dueDate').value || null,
+        regarding_type: 'opportunity',
+        regarding_id: oppId
+      };
+
+      try {
+        await api.post('/activities', data);
+        activityModal.style.display = 'none';
+        activityForm.reset();
+        loadOpportunity();
+      } catch (error) {
+        document.getElementById('formError').textContent = 'Failed to create activity';
+      }
+    });
+
+    loadOpportunity();
+  </script>
+</body>
+</html>

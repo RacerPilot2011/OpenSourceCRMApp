@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - CRM</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="container">
+    <div class="form-container">
+      <h1>Login</h1>
+
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" required>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" required>
+        </div>
+
+        <div id="error" class="error"></div>
+        <button type="submit" class="btn btn-primary">Login</button>
+      </form>
+
+      <p>Don't have an account? <a href="/signup.html">Sign up</a></p>
+    </div>
+  </div>
+
+  <script type="module" src="/js/config.js"></script>
+  <script type="module" src="/js/auth.js"></script>
+
+  <script type="module">
+    import { handleLogin } from '/js/auth.js';
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const errorDiv = document.getElementById('error');
+
+      errorDiv.textContent = '';
+
+      try {
+        await handleLogin(email, password);
+      } catch (error) {
+        errorDiv.textContent = error.message || 'Login failed';
+      }
+    });
+  </script>
+</body>
+</html>

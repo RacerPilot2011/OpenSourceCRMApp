@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Finance - CRM</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-brand">CRM</div>
+    <div class="nav-links">
+      <a href="/dashboard.html">Dashboard</a>
+      <a href="/accounts.html">Accounts</a>
+      <a href="/contacts.html">Contacts</a>
+      <a href="/leads.html">Leads</a>
+      <a href="/opportunities.html">Opportunities</a>
+      <a href="/finance.html" class="active">Finance</a>
+      <a href="/settings.html">Settings</a>
+      <a href="#" id="logoutBtn">Logout</a>
+    </div>
+  </nav>
+  
+  <div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <h1>Finance Tracking</h1>
+      <div style="display: flex; gap: 10px;"> 
+      <button class="btn btn-primary" id="createInvoiceBtn">+ New Invoice</button>
+      <button class="btn btn-primary" id="createExpenseBtn">+ Record Expense</button>
+    </div>
+    </div>
+    
+    <div class="stats-grid">
+      <div class="stat-card">
+        <h3>Total Revenue</h3>
+        <p class="stat-number" id="totalRevenue">-</p>
+      </div>
+      <div class="stat-card">
+        <h3>Outstanding</h3>
+        <p class="stat-number" id="outstandingAmount">-</p>
+      </div>
+      <div class="stat-card">
+        <h3>Expenses (Mo.)</h3>
+        <p class="stat-number" id="expenseTotal">-</p>
+      </div>
+      <div class="stat-card">
+        <h3>Net Profit</h3>
+        <p class="stat-number" id="netProfit">-</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Recent Invoices</h2>
+      <div id="recentInvoices">Loading...</div>
+    </div>
+
+    <div class="section">
+      <h2>Recent Expenses</h2>
+      <div id="recentExpenses">Loading...</div>
+    </div>
+  </div>
+  <div id="invoiceModal" class="modal" style="display:none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
+    <div class="modal-content" style="background-color: white; margin: 10% auto; padding: 20px; border-radius: 8px; width: 400px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+      <h2>Create New Invoice</h2>
+      <form id="invoiceForm">
+        <div style="margin-bottom: 15px;">
+          <label>Invoice Number</label>
+          <input type="text" id="invNum" placeholder="e.g. INV-1001" required style="width: 100%; padding: 8px; margin-top: 5px;">
+        </div>
+        <div style="margin-bottom: 15px;">
+          <label>Account</label>
+          <select id="invAcc" required style="width: 100%; padding: 8px; margin-top: 5px;">
+            <option value="">Loading accounts...</option>
+          </select>
+        </div>
+        <div style="margin-bottom: 15px;">
+          <label>Amount ($)</label>
+          <input type="number" id="invAmount" step="0.01" required style="width: 100%; padding: 8px; margin-top: 5px;">
+        </div>
+        <div style="margin-bottom: 15px;">
+          <label>Status</label>
+          <select id="invStatus" style="width: 100%; padding: 8px; margin-top: 5px;">
+            <option value="Sent">Sent</option>
+            <option value="Pending">Pending</option>
+            <option value="Paid">Paid</option>
+          </select>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+          <button type="button" id="closeModal" style="padding: 8px 15px;">Cancel</button>
+          <button type="submit" style="padding: 8px 15px; background: #007bff; color: white; border: none; border-radius: 4px;">Save Invoice</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div id="expenseModal" class="modal" style="display:none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
+    <div class="modal-content" style="background-color: white; margin: 10% auto; padding: 20px; border-radius: 8px; width: 400px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+      <h2>Record New Expense</h2>
+      <form id="expenseForm">
+        <div style="margin-bottom: 15px;">
+          <label>Category</label>
+          <select id="expCategory" required style="width: 100%; padding: 8px; margin-top: 5px;">
+            <option value="Software">Software</option>
+            <option value="Travel">Travel</option>
+            <option value="Office Supplies">Office Supplies</option>
+            <option value="Marketing">Marketing</option>
+            <option value="Rent/Utilities">Rent/Utilities</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div style="margin-bottom: 15px;">
+          <label>Description</label>
+          <input type="text" id="expDesc" placeholder="e.g. AWS Bill" required style="width: 100%; padding: 8px; margin-top: 5px;">
+        </div>
+        <div style="margin-bottom: 15px;">
+          <label>Amount ($)</label>
+          <input type="number" id="expAmount" step="0.01" required style="width: 100%; padding: 8px; margin-top: 5px;">
+        </div>
+        <div style="margin-bottom: 15px;">
+          <label>Date</label>
+          <input type="date" id="expDate" required style="width: 100%; padding: 8px; margin-top: 5px;">
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+          <button type="button" id="closeExpModal" style="padding: 8px 15px;">Cancel</button>
+          <button type="submit" style="padding: 8px 15px; background: #6c757d; color: white; border: none; border-radius: 4px;">Save Expense</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <script type="module" src="/js/config.js"></script>
+  <script type="module" src="/js/auth.js"></script>
+  <script type="module" src="/js/api.js"></script>
+  <script type="module" src="/js/app.js"></script>
+  <script type="module">
+    import { requireAuth, handleLogout } from '/js/auth.js';
+    import { api } from '/js/api.js';
+    
+    await requireAuth();
+    
+    document.getElementById('logoutBtn').addEventListener('click', (e) => {
+      e.preventDefault();
+      handleLogout();
+    });
+    // --- Modal Logic ---
+    const modal = document.getElementById('invoiceModal');
+    const btn = document.getElementById('createInvoiceBtn');
+    const closeBtn = document.getElementById('closeModal');
+    const form = document.getElementById('invoiceForm');
+
+    // Open modal
+    btn.onclick = () => modal.style.display = "block";
+
+    // Close modal
+    closeBtn.onclick = () => modal.style.display = "none";
+
+    // Handle Form Submission
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+
+      const payload = {
+        number: document.getElementById('invNum').value,
+        account_id: document.getElementById('invAcc').value,
+        amount: document.getElementById('invAmount').value,
+        status: document.getElementById('invStatus').value,
+        due_date: new Date().toISOString().split('T')[0] // Sets today as default due date
+      };
+
+      try {
+        const response = await api.post('/invoices', payload);
+        if (response) {
+          alert('Invoice created successfully!');
+          modal.style.display = "none";
+          form.reset();
+          loadFinanceDashboard(); // Refresh the list
+        }
+      } catch (error) {
+        console.error('Save failed:', error);
+        alert('Error saving invoice. Check console for details.');
+      }
+    };
+    // Helper to format currency
+    const formatCurrency = (amount) => {
+      return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+    };
+
+    async function populateAccountDropdown() {
+      try {
+        const accounts = await api.get('/accounts');
+        const select = document.getElementById('invAcc');
+        
+        select.innerHTML = '<option value="">-- Select an Account --</option>';
+        accounts.forEach(acc => {
+          const option = document.createElement('option');
+          option.value = acc.id;
+          option.textContent = acc.name;
+          select.appendChild(option);
+        });
+      } catch (error) {
+        console.error('Dropdown error:', error);
+      }
+    }
+    // --- Expense Modal Logic ---
+    const expModal = document.getElementById('expenseModal');
+    const expBtn = document.getElementById('createExpenseBtn');
+    const closeExpBtn = document.getElementById('closeExpModal');
+    const expForm = document.getElementById('expenseForm');
+
+    // Open/Close
+    expBtn.onclick = () => {
+      document.getElementById('expDate').valueAsDate = new Date(); // Default to today
+      expModal.style.display = "block";
+    };
+    closeExpBtn.onclick = () => expModal.style.display = "none";
+
+    // Handle Expense Submission
+    expForm.onsubmit = async (e) => {
+      e.preventDefault();
+
+      const payload = {
+        category: document.getElementById('expCategory').value,
+        description: document.getElementById('expDesc').value,
+        amount: document.getElementById('expAmount').value,
+        date: document.getElementById('expDate').value
+      };
+
+      try {
+        const response = await api.post('/expenses', payload);
+        if (response) {
+          alert('Expense recorded!');
+          expModal.style.display = "none";
+          expForm.reset();
+          loadFinanceDashboard(); // Refresh stats and table
+        }
+      } catch (error) {
+        console.error('Save failed:', error);
+        alert('Error saving expense.');
+      }
+    };
+
+    // Close modals if user clicks outside of them
+    window.onclick = (event) => {
+      if (event.target == modal) modal.style.display = "none";
+      if (event.target == expModal) expModal.style.display = "none";
+    };
+    async function loadFinanceDashboard() {
+      try {
+        const [invoices, expenses] = await Promise.all([
+          api.get('/invoices'), 
+          api.get('/expenses')
+        ]);
+
+        // --- 1. Calculate Stats ---
+        
+        // Sum of all paid invoices
+        const revenue = invoices
+          .filter(inv => inv.status === 'Paid')
+          .reduce((sum, inv) => sum + parseFloat(inv.amount), 0);
+
+        // Sum of sent/pending invoices
+        const outstanding = invoices
+          .filter(inv => inv.status === 'Sent' || inv.status === 'Pending')
+          .reduce((sum, inv) => sum + parseFloat(inv.amount), 0);
+
+        // Sum of all expenses
+        const totalExpenses = expenses
+          .reduce((sum, exp) => sum + parseFloat(exp.amount), 0);
+
+        const profit = revenue - totalExpenses;
+
+        // Render Stats
+        document.getElementById('totalRevenue').textContent = formatCurrency(revenue);
+        document.getElementById('outstandingAmount').textContent = formatCurrency(outstanding);
+        document.getElementById('expenseTotal').textContent = formatCurrency(totalExpenses);
+        
+        const profitEl = document.getElementById('netProfit');
+        profitEl.textContent = formatCurrency(profit);
+        // Simple color coding for profit
+        profitEl.style.color = profit >= 0 ? 'green' : 'red';
+
+        // --- 2. Render Invoices Table ---
+        const recentInvoices = invoices.slice(0, 10); // Show last 10
+        const invHtml = recentInvoices.length > 0 
+          ? `<table class="data-table">
+              <thead>
+                <tr>
+                  <th>Invoice #</th>
+                  <th>Account</th>
+                  <th>Status</th>
+                  <th>Amount</th>
+                  <th>Due Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${recentInvoices.map(inv => `
+                  <tr>
+                    <td><a href="/invoice-detail.html?id=${inv.id}">#${inv.number}</a></td>
+                    <td>${inv.account_name}</td>
+                    <td>
+                        <span class="badge" style="
+                            background-color: ${inv.status === 'Paid' ? '#d4edda' : inv.status === 'Overdue' ? '#f8d7da' : '#e2e3e5'};
+                            color: ${inv.status === 'Paid' ? '#155724' : inv.status === 'Overdue' ? '#721c24' : '#383d41'};
+                        ">${inv.status}</span>
+                    </td>
+                    <td>${formatCurrency(inv.amount)}</td>
+                    <td>${inv.due_date || '-'}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>`
+          : '<p>No invoices found.</p>';
+        
+        document.getElementById('recentInvoices').innerHTML = invHtml;
+
+        // --- 3. Render Expenses Table ---
+        const recentExpenses = expenses.slice(0, 5);
+        const expHtml = recentExpenses.length > 0
+          ? `<table class="data-table">
+              <thead>
+                <tr>
+                  <th>Category</th>
+                  <th>Description</th>
+                  <th>Date</th>
+                  <th>Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${recentExpenses.map(exp => `
+                  <tr>
+                    <td><span class="badge">${exp.category}</span></td>
+                    <td>${exp.description}</td>
+                    <td>${new Date(exp.date).toLocaleDateString()}</td>
+                    <td>${formatCurrency(exp.amount)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>`
+          : '<p>No expenses recorded.</p>';
+        
+        document.getElementById('recentExpenses').innerHTML = expHtml;
+
+      } catch (error) {
+        console.error('Error loading finance data:', error);
+        document.getElementById('recentInvoices').innerHTML = '<p class="error">Error loading data. Ensure API endpoints exist.</p>';
+      }
+      await populateAccountDropdown();
+    }
+
+    loadFinanceDashboard();
+  </script>
+</body>
+</html>
