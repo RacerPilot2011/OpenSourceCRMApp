@@ -47,7 +47,7 @@ Start Command: npm start
 
 Add your environment variables (SUPABASE_URL, etc.) in the Environment tab.
 
-## Deploying as a Static Site
+## 🖥️ Deploying as a Static Site
 Clone this repo and go into the frontend folder. 
 
 Go into JS -> config.js and add your render url("abcdefg.onrender.com/api") in the api section and add your supabase website and service key
