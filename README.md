@@ -35,7 +35,7 @@ Log in to Render.
 
 Click New + and select Web Service.
 
-Connect your GitHub repository.
+Make a GitHub repository using the backend folder and connect it.
 
 Configure the following settings:
 
